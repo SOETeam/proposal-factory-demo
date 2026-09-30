@@ -1,0 +1,692 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Proposal Factory Demo — Sample Proposal Generator · SOETech</title>
+<meta name="description" content="Interactive demo: pick a trade, job size, and region to assemble a complete sample proposal — scope, synthetic market-rate line items, timeline, warranty, and terms. Public demo by the SOETech agent fleet; 100% synthetic data.">
+<meta name="robots" content="index,follow">
+<link rel="canonical" href="https://soeteam.github.io/proposal-factory-demo/">
+<meta property="og:type" content="website">
+<meta property="og:title" content="Proposal Factory Demo — Sample Proposal Generator">
+<meta property="og:description" content="Pick a trade, job size, and region — watch a template-driven engine assemble a sample proposal. 100% synthetic data. Built by the SOETech agent fleet.">
+<meta property="og:url" content="https://soeteam.github.io/proposal-factory-demo/">
+<meta name="theme-color" content="#05070d">
+<style>
+:root{--bg:#05070d;--panel:#0b101c;--panel2:#101827;--line:#1c2740;--ink:#dbe4f0;--dim:#8b98ad;--cyan:#00e5ff;--mag:#ff2ec4;--yel:#f8e71c}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.65 system-ui,-apple-system,"Segoe UI",Roboto,Helvetica,Arial,sans-serif}
+body::before{content:"";position:fixed;inset:0;pointer-events:none;z-index:0;background:repeating-linear-gradient(0deg,rgba(0,229,255,.03) 0 1px,transparent 1px 56px),repeating-linear-gradient(90deg,rgba(0,229,255,.03) 0 1px,transparent 1px 56px)}
+.wrap{position:relative;z-index:1;max-width:1180px;margin:0 auto;padding:28px 20px 48px}
+.mono{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,"Liberation Mono",monospace}
+.dim{color:var(--dim)}
+.small{font-size:12px}
+.accent{color:var(--cyan)}
+header{margin-bottom:22px}
+.hud-top{display:flex;justify-content:space-between;align-items:center;gap:10px;font-size:11px;letter-spacing:.16em;text-transform:uppercase;color:var(--dim);border-bottom:1px solid var(--line);padding-bottom:10px;margin-bottom:18px}
+.dot{display:inline-block;width:8px;height:8px;border-radius:50%;background:var(--cyan);box-shadow:0 0 8px var(--cyan);margin-right:6px;animation:pulse 2.4s infinite}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.35}}
+.pill-syn{color:var(--mag);border:1px solid rgba(255,46,196,.45);padding:3px 8px;border-radius:4px}
+h1{font-size:clamp(28px,4vw,42px);line-height:1.15;margin:0 0 10px;letter-spacing:-.01em}
+.sub{color:var(--dim);margin:0 0 12px;max-width:70ch}
+.proves{border-left:3px solid var(--cyan);padding:2px 0 2px 12px;margin:0;max-width:75ch}
+.grid{display:grid;grid-template-columns:330px minmax(0,1fr);gap:20px;align-items:start}
+.panel{position:relative;background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:20px}
+.hud-corners::before,.hud-corners::after{content:"";position:absolute;left:0;right:0;height:14px;pointer-events:none;opacity:.75}
+.hud-corners::before{top:0;background:linear-gradient(var(--cyan),var(--cyan)) left top/14px 2px no-repeat,linear-gradient(var(--cyan),var(--cyan)) left top/2px 14px no-repeat,linear-gradient(var(--cyan),var(--cyan)) right top/14px 2px no-repeat,linear-gradient(var(--cyan),var(--cyan)) right top/2px 14px no-repeat}
+.hud-corners::after{bottom:0;background:linear-gradient(var(--cyan),var(--cyan)) left bottom/14px 2px no-repeat,linear-gradient(var(--cyan),var(--cyan)) left bottom/2px 14px no-repeat,linear-gradient(var(--cyan),var(--cyan)) right bottom/14px 2px no-repeat,linear-gradient(var(--cyan),var(--cyan)) right bottom/2px 14px no-repeat}
+.flabel{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-size:11px;letter-spacing:.18em;text-transform:uppercase;color:var(--dim);margin:16px 0 8px}
+.flabel:first-child{margin-top:2px}
+.seg{display:flex;flex-wrap:wrap;gap:8px}
+.seg button,select,.btn{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace}
+.seg button{font-size:12.5px;letter-spacing:.04em;padding:8px 12px;background:var(--panel2);border:1px solid var(--line);color:var(--dim);border-radius:6px;cursor:pointer;transition:border-color .15s,color .15s}
+.seg button:hover{border-color:rgba(0,229,255,.5);color:var(--ink)}
+.seg button[aria-pressed="true"]{border-color:var(--cyan);color:var(--cyan);box-shadow:inset 0 0 0 1px rgba(0,229,255,.25)}
+select{width:100%;font-size:13px;padding:9px 10px;background:var(--panel2);border:1px solid var(--line);color:var(--ink);border-radius:6px}
+.actions{display:flex;flex-wrap:wrap;gap:8px;margin-top:18px}
+.btn{font-size:12.5px;letter-spacing:.04em;padding:9px 13px;background:var(--panel2);border:1px solid var(--line);color:var(--dim);border-radius:6px;cursor:pointer;transition:.15s}
+.btn:hover{border-color:rgba(0,229,255,.5);color:var(--ink)}
+.btn.primary{border-color:var(--cyan);color:var(--cyan);background:rgba(0,229,255,.08)}
+.btn.primary:hover{background:rgba(0,229,255,.15)}
+.hint{font-size:11px;color:var(--dim);margin:14px 0 0;letter-spacing:.08em}
+.doc-head{margin-bottom:6px}
+.doc-kicker{font-size:11px;letter-spacing:.18em;text-transform:uppercase;color:var(--mag)}
+.doc-title{font-size:clamp(22px,3vw,30px);margin:8px 0 6px}
+.doc-meta{font-size:12px;color:var(--dim);letter-spacing:.04em;border-bottom:1px solid var(--line);padding-bottom:12px}
+.sec{margin:20px 0}
+.sec-h{display:flex;gap:10px;align-items:baseline;font-size:12px;letter-spacing:.18em;text-transform:uppercase;color:var(--cyan);border-bottom:1px solid var(--line);padding-bottom:6px;margin-bottom:10px}
+.sec-h .idx{color:var(--mag)}
+table{width:100%;border-collapse:collapse;font-size:14px}
+th{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-size:10.5px;text-transform:uppercase;letter-spacing:.12em;color:var(--dim);text-align:left;border-bottom:1px solid var(--line);padding:7px 6px}
+th.num,td.num{text-align:right;font-variant-numeric:tabular-nums}
+td{padding:7px 6px;border-bottom:1px solid rgba(28,39,64,.55);vertical-align:top}
+td.strong,.strong{color:var(--cyan);font-weight:600}
+.totals{margin-top:12px;font-size:13px;letter-spacing:.03em}
+ul.scope,ul.terms{margin:0;padding-left:20px}
+ul.scope li,ul.terms li{margin:5px 0}
+ol.timeline{list-style:none;margin:0;padding:0}
+ol.timeline li{display:flex;justify-content:space-between;gap:12px;border-bottom:1px dashed rgba(28,39,64,.8);padding:8px 2px}
+ol.timeline .ph{font-weight:600}
+ol.timeline .dur{color:var(--dim);font-size:12.5px;white-space:nowrap}
+.note{font-size:12.5px;margin:10px 0 0}
+.stamp-row{display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin-top:22px;border-top:1px solid var(--line);padding-top:14px}
+.stamp{font-size:12px;color:var(--yel);border:1px solid rgba(248,231,28,.4);padding:6px 10px;border-radius:6px;letter-spacing:.03em}
+.chip{font-size:11px;color:var(--dim);letter-spacing:.08em}
+.examples{margin-top:26px}
+.examples-h{font-size:12px;letter-spacing:.18em;color:var(--dim);border-bottom:1px solid var(--line);padding-bottom:8px;margin:0 0 12px}
+details{background:var(--panel);border:1px solid var(--line);border-radius:8px;margin:0 0 10px}
+summary{cursor:pointer;padding:12px 16px;font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-size:13px;color:var(--ink);letter-spacing:.04em}
+summary:hover{color:var(--cyan)}
+details[open] summary{border-bottom:1px solid var(--line);color:var(--cyan)}
+.ex-body{padding:6px 16px 16px}
+footer{margin-top:34px;border-top:1px solid var(--line);padding-top:16px}
+.foot-line{font-size:12.5px;letter-spacing:.06em;color:var(--ink)}
+.prov p{color:var(--dim);font-size:13.5px;max-width:90ch;margin:6px 0}
+.noscript{color:var(--yel);padding:12px;border:1px solid rgba(248,231,28,.4);border-radius:6px}
+@media (max-width:920px){.grid{grid-template-columns:1fr}}
+@media print{
+ body{background:#fff;color:#111}
+ body::before{display:none}
+ .no-print{display:none!important}
+ .panel{background:#fff;border-color:#aaa}
+ .doc-title{color:#111}
+ .sec-h{color:#111;border-color:#ccc}
+ .sec-h .idx{color:#666}
+ th,td{color:#111;border-color:#ddd}
+ .strong{color:#0a5c66}
+ .stamp{color:#7a5c00;border-color:#c9b458;background:#fff}
+ .totals{color:#111}
+}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header class="no-print">
+    <div class="hud-top mono">
+      <span><span class="dot"></span> Proposal Factory · v1.0 · Public demo</span>
+      <span class="pill-syn">Synthetic demo data</span>
+    </div>
+    <h1>Proposal <span class="accent">Factory</span></h1>
+    <p class="sub">Interactive sample-proposal generator — pick a trade, a job size, and a region; the client-side engine assembles a complete proposal outline in milliseconds.</p>
+    <p class="proves">This demo shows <strong>template-driven document generation</strong> built by the SOETech agent fleet — one static file, no backend, no sign-in.</p>
+  </header>
+
+  <div class="grid">
+    <aside class="controls panel hud-corners no-print" aria-label="Proposal generator controls">
+      <div class="flabel">01 · Business type</div>
+      <div class="seg" id="bizSeg"></div>
+      <div class="flabel">02 · Job size</div>
+      <div class="seg" id="sizeSeg"></div>
+      <div class="flabel">03 · Region</div>
+      <select id="regionSel" aria-label="Region"></select>
+      <div class="actions">
+        <button type="button" class="btn primary" id="genBtn">Generate proposal</button>
+        <button type="button" class="btn" id="rerollBtn">Regenerate phrasing</button>
+        <button type="button" class="btn" id="copyBtn">Copy outline</button>
+        <button type="button" class="btn" id="printBtn">Print view</button>
+      </div>
+      <p class="hint mono">105 combinations · runs fully client-side</p>
+    </aside>
+
+    <section class="panel hud-corners">
+      <div id="output" role="region" aria-live="polite" aria-label="Generated proposal"></div>
+    </section>
+  </div>
+
+  <section class="examples no-print">
+    <h2 class="examples-h mono">Pre-baked examples — view without interacting</h2>
+    <div id="examplesList"></div>
+  </section>
+
+  <footer>
+    <div class="foot-line mono">Built by the SOETech agent fleet · synthetic demo data · 2026-09-30</div>
+    <div class="prov">
+      <div class="flabel">Data provenance</div>
+      <p>Every business, region, figure, and range on this page is <strong>fabricated for demonstration</strong> — generated by in-file template rules (7 trades × 3 job sizes × 5 regions = 105 combinations). No client data, no real companies, no network calls at runtime, no sign-in. Nothing here is a quote, offer, or contract.</p>
+      <p class="mono dim small">Sources: none external — the only dataset is this page's own synthetic template engine.</p>
+    </div>
+  </footer>
+</div>
+<noscript><p class="noscript">JavaScript is required for the interactive generator and the pre-baked examples. This demo is fully client-side and sends nothing anywhere.</p></noscript>
+<script>
+'use strict';
+
+var STAMP = 'Generated by the SOETech agent fleet in <0.3 s — synthetic sample';
+var STAMP_ESC = STAMP.replace('<', '&lt;');
+
+var BIZ_ORDER = ['hvac', 'flooring', 'roofing', 'landscaping', 'cleaning', 'dental', 'legal'];
+
+var SIZES = [
+  { id: 'small',  label: 'Small job',  crew: '2–3 person crew',       sizeDesc: 'small single-property job' },
+  { id: 'medium', label: 'Medium job', crew: '4–5 person crew',       sizeDesc: 'medium multi-phase job' },
+  { id: 'large',  label: 'Large job',  crew: '6–8 person multi-crew', sizeDesc: 'large multi-site job' }
+];
+
+var REGIONS = [
+  { id: 'northgate-metro',    name: 'Northgate Metro',    factor: 1.12, note: 'high-density urban market' },
+  { id: 'cedar-valley',       name: 'Cedar Valley',       factor: 0.98, note: 'balanced suburban market' },
+  { id: 'lakeshore-corridor', name: 'Lakeshore Corridor', factor: 1.08, note: 'seasonal waterfront market' },
+  { id: 'pinewood-county',    name: 'Pinewood County',    factor: 0.92, note: 'rural service area' },
+  { id: 'harbor-district',    name: 'Harbor District',    factor: 1.05, note: 'mixed commercial waterfront' }
+];
+
+var NOTES = [
+  'Pricing is shown as market ranges; final figures depend on site conditions and selected finishes.',
+  'Ranges reflect typical market magnitudes for this region class; an on-site visit would firm them into fixed numbers.',
+  'This outline is structure-first: line items show what a complete proposal would itemize, using synthetic market rates.'
+];
+
+var PAY_DEFAULT = '30% deposit at signing; 40% at mid-project milestone; 30% due on completion and walkthrough.';
+var PAY_OVERRIDE = {
+  cleaning: 'Program billed monthly, net 15; deep-clean phases billed per completed visit.',
+  dental:   '50% equipment deposit at order placement; balance due on installation and calibration.',
+  legal:    'Milestone billing net 15; scanning and indexing invoiced per completed box.'
+};
+
+var TERMS_BASE = [
+  'Change orders require written client approval before additional work begins.',
+  'Excluded: permits and municipal fees, unknown site conditions (structural damage, mold, hazardous materials), and code-mandated upgrades discovered mid-project.',
+  'Range pricing is indicative and holds for 30 days from the issue date.',
+  'Synthetic sample document for demonstration only — not an offer, contract, or quote.'
+];
+
+var EXEC_T = [
+  function (company, serv, sizeDesc, region) {
+    return company + ' has requested a ' + serv + ' engagement for a ' + sizeDesc + ' in ' + region.name + ' (' + region.note + '). This sample outline covers scope of work, materials and labor with synthetic market-range pricing, a phased timeline, warranty coverage, and standard terms.';
+  },
+  function (company, serv, sizeDesc, region) {
+    return 'Prepared for ' + company + ' — a ' + serv + ' project (' + sizeDesc + ') located in ' + region.name + '. The sections below show how the work would be staged, what materials and labor typically run in market-range terms, and the warranty and terms that would frame the agreement.';
+  },
+  function (company, serv, sizeDesc, region) {
+    return company + ': ' + serv + ', ' + sizeDesc + ', ' + region.name + '. This document is template-driven: every figure is a synthetic market-range placeholder intended to demonstrate proposal structure — not a quote.';
+  }
+];
+
+var VERTICALS = {
+  hvac: {
+    label: 'HVAC',
+    serv: 'heating & cooling system replacement',
+    companies: ['Blue Spruce Heating & Air', 'Nordvale Climate Co.', 'Fernhill Air Systems'],
+    scope: {
+      base: [
+        'Load calculation and equipment sizing review for the property',
+        'Removal and eco-friendly disposal of existing equipment',
+        'New condenser and air handler installation with line set',
+        'Duct sealing and airflow balancing at all supply registers'
+      ],
+      small:  ['Smart thermostat installation and app pairing'],
+      medium: ['Zoned ductwork modifications with new dampers', 'Refrigerant recovery and vacuum pull-down documentation'],
+      large:  ['Multi-zone system design across three comfort zones', 'Dedicated return-air pathway construction', 'Permit management and code-compliance inspection coordination']
+    },
+    materials: [
+      { n: 'Condenser unit, 3-ton',            u: 'ea', q: [1, 2, 3],   r: [2900, 4200] },
+      { n: 'Air handler / furnace unit',       u: 'ea', q: [1, 1, 2],   r: [1800, 3400] },
+      { n: 'Ductwork & supply registers',      u: 'lf', q: [120, 380, 900], r: [18, 32] },
+      { n: 'Refrigerant line set',             u: 'lf', q: [35, 80, 160],   r: [12, 22] },
+      { n: 'Smart thermostat',                 u: 'ea', q: [1, 2, 4],   r: [180, 350] }
+    ],
+    labor: [
+      { n: 'Certified HVAC installer',       u: 'hr', q: [24, 60, 140], r: [85, 135] },
+      { n: 'Duct fabrication & fitting',     u: 'hr', q: [12, 30, 70],  r: [70, 110] },
+      { n: 'Commissioning & QA tech',        u: 'hr', q: [4, 10, 24],   r: [95, 150] }
+    ],
+    phases: {
+      small:  [['Permit & scheduling', '3–5 days'], ['Installation', '2–3 days'], ['Inspection & client walkthrough', '1 day']],
+      medium: [['Load calculation & permits', '1 week'], ['Staged installation', '1–2 weeks'], ['Commissioning & inspection', '2–4 days']],
+      large:  [['Engineering & permit package', '1–2 weeks'], ['Phased installation (zones 1–3)', '3–5 weeks'], ['Commissioning, balancing & handoff', '1 week']]
+    },
+    warranty: '2-year workmanship warranty on installation labor; manufacturer parts warranties pass through to the owner (typical: 5-year compressor, 10-year registered coverage).',
+    termsNote: 'Equipment lead times apply; range pricing holds 30 days from issue.'
+  },
+
+  flooring: {
+    label: 'Flooring',
+    serv: 'flooring replacement & installation',
+    companies: ['Cedar Plank Flooring Co.', 'Tidewater Floor Studio', 'Maple Row Flooring'],
+    scope: {
+      base: [
+        'Room-by-room measurement and layout plan',
+        'Removal and haul-away of existing floor covering',
+        'Subfloor inspection, squeak repair and leveling',
+        'Luxury vinyl plank installation with transitions and trim'
+      ],
+      small:  ['Baseboard removal and reinstallation'],
+      medium: ['Acoustic underlayment install with moisture testing', 'Stair nosing and closet detail work'],
+      large:  ['Open-concept plank direction planning across sightlines', 'Custom stair treads and railing transitions', 'Post-install deep clean and furniture-pad kit']
+    },
+    materials: [
+      { n: 'Luxury vinyl plank, wear-layer rated', u: 'sf', q: [800, 2400, 6000], r: [3, 7] },
+      { n: 'Acoustic underlayment',                u: 'sf', q: [800, 2400, 6000], r: [1, 2] },
+      { n: 'Baseboard & transition strips',        u: 'lf', q: [180, 520, 1300],  r: [4, 9] },
+      { n: 'Subfloor repair panel',                u: 'sf', q: [0, 60, 200],      r: [2, 4] }
+    ],
+    labor: [
+      { n: 'Flooring installer',                   u: 'sf', q: [800, 2400, 6000], r: [3, 6] },
+      { n: 'Removal & haul-away crew',             u: 'sf', q: [800, 2400, 6000], r: [1, 3] },
+      { n: 'Finish carpenter (trim & transitions)',u: 'hr', q: [8, 20, 48],       r: [55, 90] }
+    ],
+    phases: {
+      small:  [['Measure & material order', '2–3 days'], ['Removal & installation', '2–4 days'], ['Trim, cure & walkthrough', '1–2 days']],
+      medium: [['Layout & material staging', '3–5 days'], ['Phased room-by-room install', '1–2 weeks'], ['Trim & final punch list', '2–3 days']],
+      large:  [['Moisture mapping & acclimation', '1 week'], ['Zone-by-zone installation', '3–4 weeks'], ['Stair details, clean & handoff', '1 week']]
+    },
+    warranty: 'Manufacturer wear warranty on plank passes through to the owner; 2-year installation workmanship warranty covers gaps, cupping and transition failures.',
+    termsNote: 'Plank dye-lot sign-off required before order; ranges assume sound subfloor.'
+  },
+
+  roofing: {
+    label: 'Roofing',
+    serv: 'full roof replacement',
+    companies: ['Iron Peak Roofing', 'Ridgeline & Slate Roofing', 'Gablestone Roofing Co.'],
+    scope: {
+      base: [
+        'Full tear-off of existing roof covering and underlayment',
+        'Deck inspection with rotten-sheet replacement allowance',
+        'Ice-and-water barrier at eaves and valleys; synthetic underlayment field',
+        'Architectural shingle installation with ridge venting'
+      ],
+      small:  ['Chimney and pipe-boot flashing replacement'],
+      medium: ['Gutter edge flashing and drip edge replacement', 'Skylight re-flash and seal'],
+      large:  ['Partial plywood deck replacement (up to 15% of roof field)', 'Hipped ridge and valley venting package', 'Final magnetic nail sweep and drone photo report']
+    },
+    materials: [
+      { n: 'Architectural shingles',                 u: 'sq', q: [18, 45, 110], r: [140, 220] },
+      { n: 'Underlayment & ice-water barrier',       u: 'sq', q: [18, 45, 110], r: [45, 85] },
+      { n: 'Ridge vent',                             u: 'lf', q: [30, 80, 200], r: [9, 18] },
+      { n: 'Flashing kit (chimney, walls, boots)',   u: 'ea', q: [2, 5, 9],     r: [120, 260] },
+      { n: 'Plywood deck replacement',               u: 'sq', q: [0, 2, 6],     r: [180, 320] }
+    ],
+    labor: [
+      { n: 'Installation crew (shingle lay)', u: 'sq', q: [18, 45, 110], r: [220, 420] },
+      { n: 'Tear-off & disposal',             u: 'sq', q: [18, 45, 110], r: [80, 160] },
+      { n: 'Flashing & detail installer',     u: 'hr', q: [6, 16, 40],   r: [65, 105] }
+    ],
+    phases: {
+      small:  [['Material drop & dumpster', '1 day'], ['Tear-off & install', '2–3 days'], ['Cleanup & walkthrough', '1 day']],
+      medium: [['Permit & material staging', '2–4 days'], ['Tear-off, deck repair & install', '1–2 weeks'], ['Flashing details & final inspection', '2–3 days']],
+      large:  [['Engineering review & permits', '1–2 weeks'], ['Phased tear-off & installation', '3–5 weeks'], ['Venting, QA sweep & handoff', '1 week']]
+    },
+    warranty: '10-year workmanship warranty on installation; shingle manufacturer warranty (30-year to lifetime, product) passes through to the owner.',
+    termsNote: 'Weather delays shift the schedule; materials priced at delivery-day availability.'
+  },
+
+  landscaping: {
+    label: 'Landscaping',
+    serv: 'outdoor hardscape & planting renovation',
+    companies: ['Foxglove Grounds Co.', 'Stonebridge Outdoor Works', 'Fern & Flagstone Landscapes'],
+    scope: {
+      base: [
+        'Site walk, sun/shade mapping and planting plan',
+        'Grading, edging and paver-base preparation',
+        'Paver patio installation with polymeric sand joints',
+        'Planting of nursery-stock shrubs and perennials with mulch'
+      ],
+      small:  ['Front-bed refresh with seasonal color rotation'],
+      medium: ['Drip irrigation zones with smart timer', 'Boulder accent placement and low-voltage path lighting'],
+      large:  ['Retaining wall seat wall with engineered base', 'Water-feature rough-in with recirculation pump', 'Irrigation smart-controller weather sensing']
+    },
+    materials: [
+      { n: 'Paver stones (4×8 architectural)', u: 'sf', q: [250, 700, 1800], r: [6, 14] },
+      { n: 'Topsoil & mulch',                  u: 'cy', q: [8, 20, 50],      r: [45, 90] },
+      { n: 'Nursery shrubs & perennials',      u: 'ea', q: [15, 40, 90],     r: [25, 120] },
+      { n: 'Irrigation heads & drip line',     u: 'ea', q: [0, 18, 45],      r: [18, 40] },
+      { n: 'Paver base & edging',              u: 'lf', q: [150, 420, 1000], r: [3, 7] }
+    ],
+    labor: [
+      { n: 'Landscape crew',            u: 'hr', q: [40, 110, 260], r: [50, 85] },
+      { n: 'Mini-excavator operator',   u: 'hr', q: [8, 24, 60],    r: [85, 140] },
+      { n: 'Irrigation tech',           u: 'hr', q: [0, 12, 30],    r: [70, 115] }
+    ],
+    phases: {
+      small:  [['Design sign-off & dig-locate call', '3–5 days'], ['Grade, base & paver set', '3–4 days'], ['Planting & mulch', '1–2 days']],
+      medium: [['Plan, permits & locate', '1 week'], ['Hardscape build', '2 weeks'], ['Planting, irrigation & lighting', '1 week']],
+      large:  [['Engineered wall drawings & permits', '2 weeks'], ['Hardscape & wall construction', '4–6 weeks'], ['Softscape, irrigation & final walkthrough', '1–2 weeks']]
+    },
+    warranty: '1-year plant establishment warranty (one replacement, owner waters per schedule); 5-year paver settlement warranty on base work.',
+    termsNote: 'Plant substitutions of equal value allowed with written notice.'
+  },
+
+  cleaning: {
+    label: 'Cleaning',
+    serv: 'janitorial program launch & deep-clean services',
+    companies: ['Marigold Cleaning Services', 'Bright Loom Cleaners', 'Spark & Sort Solutions'],
+    scope: {
+      base: [
+        'Facility walk-through and scope-of-service matrix',
+        'Recurring janitorial program (dusting, floors, restrooms, breakroom)',
+        'Consumables management and restock reporting',
+        'Quality inspection checklist with supervisor audits'
+      ],
+      small:  ['One-time deep-clean kick-off visit'],
+      medium: ['Quarterly carpet extraction cycle', 'Interior glass and partition detailing'],
+      large:  ['Post-construction specialty detail crew', 'Day-porter presence during business hours', 'Green-certified product line switch']
+    },
+    materials: [
+      { n: 'Supplies & consumables kit',      u: 'visit', q: [4, 12, 30],       r: [25, 60] },
+      { n: 'Deep-clean treatment package',    u: 'sf',    q: [1200, 4000, 10000], r: [0.12, 0.30] },
+      { n: 'Carpet extraction',               u: 'sf',    q: [0, 2400, 8000],   r: [0.25, 0.55] },
+      { n: 'Window & glass package',          u: 'pane',  q: [6, 20, 60],       r: [6, 15] }
+    ],
+    labor: [
+      { n: 'Cleaning technician',       u: 'hr', q: [24, 80, 220], r: [25, 45] },
+      { n: 'Crew lead / QA auditor',    u: 'hr', q: [4, 14, 40],   r: [35, 60] },
+      { n: 'Specialty detail tech',     u: 'hr', q: [0, 10, 40],   r: [40, 70] }
+    ],
+    phases: {
+      small:  [['Walk-through & key handoff', '1 day'], ['Deep-clean kick-off', '1 day'], ['Recurring cadence begins', 'weekly']],
+      medium: [['Scope matrix & schedule lock', '2–3 days'], ['Kick-off deep clean', '2 days'], ['Recurring cadence + quarterly extraction', 'ongoing']],
+      large:  [['Multi-site scope matrix', '1 week'], ['Crew onboarding & badges', '1 week'], ['Phased deep clean + day-porter launch', '2 weeks']]
+    },
+    warranty: '48-hour re-clean guarantee on any inspected area that fails the QA checklist.',
+    termsNote: 'Pricing shown as per-unit market ranges; monthly program pricing scales with visit frequency.'
+  },
+
+  dental: {
+    label: 'Dental',
+    serv: 'clinic equipment buildout & installation',
+    companies: ['Lakeside Family Dental (demo practice)', 'Meridian Dental Studio (demo practice)', 'Hollis Bend Dental (demo practice)'],
+    scope: {
+      base: [
+        'Chair-count layout and equipment schedule review',
+        'Operatory chair & delivery unit installation with utility hookups',
+        'Digital X-ray unit mounting and calibration',
+        'Sterilization center setup with workflow zoning'
+      ],
+      small:  ['Waiting room refresh with furniture set'],
+      medium: ['Med-gas and vacuum line rough-in coordination', 'Cabinetry run with solid-surface counters'],
+      large:  ['Four-operatory expansion with central sterilization', 'Practice-management software & imaging network cabling', 'Compliance signage and records-room buildout']
+    },
+    materials: [
+      { n: 'Operatory chair & delivery unit', u: 'ea', q: [2, 3, 4],   r: [9000, 18000] },
+      { n: 'Digital X-ray unit',              u: 'ea', q: [1, 1, 2],   r: [6000, 14000] },
+      { n: 'Sterilization center',            u: 'ea', q: [1, 1, 1],   r: [4500, 9500] },
+      { n: 'Cabinetry & sinks',               u: 'lf', q: [12, 28, 55], r: [280, 550] },
+      { n: 'Waiting room furniture set',      u: 'ea', q: [1, 1, 2],   r: [2500, 6000] }
+    ],
+    labor: [
+      { n: 'Equipment install tech (OEM-certified)', u: 'hr',   q: [24, 48, 90],  r: [110, 180] },
+      { n: 'Plumber (med-gas & water)',              u: 'hr',   q: [16, 40, 80],  r: [95, 160] },
+      { n: 'Electrician',                            u: 'hr',   q: [12, 30, 64],  r: [85, 145] },
+      { n: 'Build-out contractor',                   u: 'day',  q: [4, 10, 24],   r: [1200, 2400] }
+    ],
+    phases: {
+      small:  [['Equipment schedule & orders', '1 week'], ['Install & utility hookups', '3–5 days'], ['Calibration & compliance check', '1–2 days']],
+      medium: [['Permits & rough-in coordination', '2 weeks'], ['Cabinetry & equipment set', '2 weeks'], ['Calibration, imaging & inspection', '1 week']],
+      large:  [['Buildout permits & demolition', '2–3 weeks'], ['Mechanical, med-gas & cabinetry', '4–6 weeks'], ['Equipment, imaging network & handoff', '2 weeks']]
+    },
+    warranty: '1-year installation labor warranty; OEM equipment manufacturer warranties pass through (typical 3–5 year parts).',
+    termsNote: 'Equipment deposits due at order; lead times vary by manufacturer.'
+  },
+
+  legal: {
+    label: 'Legal',
+    serv: 'office systems setup & records digitization',
+    companies: ['Calloway & Finch Law Office (demo firm)', 'Harbor Legal Group PLLC (demo firm)', 'Birchwood & Vale Attorneys (demo firm)'],
+    scope: {
+      base: [
+        'Records inventory and retention-schedule mapping',
+        'Document scanning, OCR and matter-based indexing',
+        'Secure file server (NAS) setup with access controls',
+        'Practice-management software onboarding for staff'
+      ],
+      small:  ['Conference room display wall install'],
+      medium: ['Enclosed records room with locking shelving', 'Email retention policy configuration'],
+      large:  ['Multi-office secure network segmentation', 'Reception & wayfinding signage package', 'Disaster-recovery backup drill and runbook']
+    },
+    materials: [
+      { n: 'Secure file server (NAS)',               u: 'ea',   q: [1, 1, 2],    r: [900, 2200] },
+      { n: 'Conference room A/V package',            u: 'ea',   q: [1, 1, 2],    r: [1800, 4500] },
+      { n: 'Reception & signage package',            u: 'ea',   q: [1, 1, 1],    r: [1200, 3000] },
+      { n: 'Locking shelving unit',                  u: 'ea',   q: [2, 5, 10],   r: [350, 700] },
+      { n: 'Practice-management license (annual)',   u: 'seat', q: [3, 8, 16],   r: [40, 90] }
+    ],
+    labor: [
+      { n: 'Legal ops consultant',     u: 'hr', q: [10, 26, 60],  r: [95, 175] },
+      { n: 'IT setup tech',            u: 'hr', q: [8, 20, 48],   r: [75, 130] },
+      { n: 'Scanning & indexing clerk',u: 'hr', q: [16, 60, 150], r: [22, 38] }
+    ],
+    phases: {
+      small:  [['Inventory & chain-of-custody plan', '2–3 days'], ['Scanning & indexing sprint', '3–5 days'], ['Server setup & staff training', '1–2 days']],
+      medium: [['Retention mapping & vendor orders', '1 week'], ['Batch scanning & software onboarding', '2 weeks'], ['Security review & go-live', '3–5 days']],
+      large:  [['Multi-office network design', '2 weeks'], ['Phased scanning & migration', '4–6 weeks'], ['DR drill, signage & closeout', '1 week']]
+    },
+    warranty: '90-day re-scan guarantee for any image quality defect; server hardware covered by manufacturer warranty with 1-year setup labor.',
+    termsNote: 'Chain-of-custody log provided for all boxed records; originals returned or certified-destroyed per written instruction.'
+  }
+};
+
+var EXAMPLES = [
+  { title: 'Example A · Roofing — large job — Cedar Valley',      biz: 'roofing',      size: 'large',  region: 'cedar-valley',    seed: 1101 },
+  { title: 'Example B · Dental — small job — Harbor District',    biz: 'dental',       size: 'small',  region: 'harbor-district', seed: 2202 },
+  { title: 'Example C · Landscaping — medium job — Northgate Metro', biz: 'landscaping', size: 'medium', region: 'northgate-metro', seed: 3303 }
+];
+
+function mulberry32(seed) {
+  seed = seed >>> 0;
+  return function () {
+    seed = (seed + 0x6D2B79F5) | 0;
+    var t = Math.imul(seed ^ (seed >>> 15), 1 | seed);
+    t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
+    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+  };
+}
+function pick(rng, arr) { return arr[Math.floor(rng() * arr.length)]; }
+function money(n) { n = Math.round(n * 100) / 100; return Number.isInteger(n) ? '$' + n.toLocaleString('en-US') : '$' + n.toFixed(2); }
+function findById(arr, id) { for (var i = 0; i < arr.length; i++) { if (arr[i].id === id) return arr[i]; } return arr[0]; }
+
+function generateProposal(bizId, sizeId, regionId, seed) {
+  var rng = mulberry32(seed >>> 0);
+  var v = VERTICALS[bizId] || VERTICALS.roofing;
+  var s = findById(SIZES, sizeId);
+  var r = findById(REGIONS, regionId);
+  var company = pick(rng, v.companies);
+  var factor = r.factor;
+  var qi = s.id === 'small' ? 0 : (s.id === 'medium' ? 1 : 2);
+
+  function rows(list) {
+    var out = [];
+    for (var i = 0; i < list.length; i++) {
+      var it = list[i];
+      var q = it.q[qi];
+      if (!q) continue;
+      out.push({
+        n: it.n, u: it.u, q: q, r: it.r,
+        lo: Math.round(q * it.r[0] * factor),
+        hi: Math.round(q * it.r[1] * factor)
+      });
+    }
+    return out;
+  }
+
+  var materials = rows(v.materials);
+  var labor = rows(v.labor);
+  var t0 = 0, t1 = 0;
+  var all = materials.concat(labor);
+  for (var i = 0; i < all.length; i++) { t0 += all[i].lo; t1 += all[i].hi; }
+
+  var exec = pick(rng, EXEC_T)(company, v.serv, s.sizeDesc, r);
+  var scope = v.scope.base.concat(v.scope[s.id]);
+  var note = pick(rng, NOTES);
+  var pay = PAY_OVERRIDE[bizId] || PAY_DEFAULT;
+  var terms = [pay].concat(TERMS_BASE);
+
+  return {
+    company: company,
+    propId: 'PF-2026-' + (1000 + Math.floor(rng() * 9000)),
+    dateStr: new Date().toISOString().slice(0, 10),
+    verticalLabel: v.label,
+    region: r,
+    size: s,
+    factor: factor,
+    exec: exec,
+    note: note,
+    scope: scope,
+    materials: materials,
+    labor: labor,
+    totals: [t0, t1],
+    phases: v.phases[s.id],
+    warranty: v.warranty,
+    termsNote: v.termsNote,
+    terms: terms
+  };
+}
+
+function sec(idx, title, inner) {
+  return '<section class="sec"><div class="sec-h mono"><span class="idx">' + idx + '</span>' + title + '</div>' + inner + '</section>';
+}
+function rowHtml(it) {
+  return '<tr><td>' + it.n + '</td><td class="num">' + it.q + ' ' + it.u + '</td>' +
+    '<td class="num">' + money(it.r[0]) + '–' + money(it.r[1]) + ' / ' + it.u + '</td>' +
+    '<td class="num strong">' + money(it.lo) + '–' + money(it.hi) + '</td></tr>';
+}
+function tableHtml(rows) {
+  return '<table><thead><tr><th>Item</th><th class="num">Qty</th><th class="num">Unit market range</th><th class="num">Line range</th></tr></thead><tbody>' +
+    rows.map(rowHtml).join('') + '</tbody></table>';
+}
+function listHtml(arr) { return '<ul>' + arr.map(function (x) { return '<li>' + x + '</li>'; }).join('') + '</ul>'; }
+
+function renderProposal(doc, ms) {
+  var h = [];
+  h.push('<div class="doc-head">');
+  h.push('<div class="doc-kicker mono">Sample proposal · synthetic demo · ' + doc.propId + '</div>');
+  h.push('<h2 class="doc-title">' + doc.company + '</h2>');
+  h.push('<div class="doc-meta mono">' + doc.verticalLabel + ' · ' + doc.size.label + ' (' + doc.size.crew + ') · Region: ' + doc.region.name + ' (×' + doc.region.factor + ') · Issued: ' + doc.dateStr + '</div>');
+  h.push('</div>');
+
+  h.push(sec('01', 'Executive summary', '<p>' + doc.exec + '</p><p class="note dim">' + doc.note + '</p>'));
+  h.push(sec('02', 'Scope of work', '<ul class="scope">' + doc.scope.map(function (x) { return '<li>' + x + '</li>'; }).join('') + '</ul>'));
+  h.push(sec('03', 'Materials — synthetic market ranges', tableHtml(doc.materials) +
+    '<p class="note dim">Unit ranges are synthetic market placeholders — the ' + doc.region.name + ' regional factor (×' + doc.region.factor + ') is applied at the line level.</p>'));
+  h.push(sec('04', 'Labor — synthetic market ranges', tableHtml(doc.labor) +
+    '<div class="totals mono">Indicative total: <span class="strong">' + money(doc.totals[0]) + ' – ' + money(doc.totals[1]) + '</span> <span class="dim">· synthetic figures, not quotes</span></div>'));
+  h.push(sec('05', 'Timeline', '<ol class="timeline">' + doc.phases.map(function (p) {
+    return '<li><span class="ph">' + p[0] + '</span><span class="dur mono">' + p[1] + '</span></li>';
+  }).join('') + '</ol>'));
+  h.push(sec('06', 'Warranty', '<p>' + doc.warranty + '</p><p class="note dim">Synthetic sample warranty language — not an offer.</p>'));
+  h.push(sec('07', 'Terms & conditions', '<ul class="terms">' + doc.terms.map(function (x) { return '<li>' + x + '</li>'; }).join('') + '</ul>' +
+    '<p class="note dim">' + doc.termsNote + '</p>'));
+
+  h.push('<div class="stamp-row"><span class="stamp mono">' + STAMP_ESC + '</span><span class="chip mono">measured ' + ms + ' ms</span></div>');
+  return h.join('');
+}
+
+function buildPlainText(doc) {
+  var L = [];
+  L.push('SAMPLE PROPOSAL — SYNTHETIC DEMO');
+  L.push(doc.company + ' · ' + doc.propId + ' · issued ' + doc.dateStr);
+  L.push('Scope: ' + doc.size.label + ' (' + doc.size.crew + ') · Region: ' + doc.region.name + ' (factor ×' + doc.region.factor + ')');
+  L.push('');
+  L.push('EXECUTIVE SUMMARY');
+  L.push(doc.exec);
+  L.push('');
+  L.push('SCOPE OF WORK');
+  doc.scope.forEach(function (x) { L.push('- ' + x); });
+  L.push('');
+  L.push('MATERIALS (synthetic market ranges)');
+  doc.materials.forEach(function (it) { L.push('- ' + it.n + ' — ' + it.q + ' ' + it.u + ' — ' + money(it.lo) + '–' + money(it.hi) + ' (unit ' + money(it.r[0]) + '–' + money(it.r[1]) + ')'); });
+  L.push('');
+  L.push('LABOR (synthetic market ranges)');
+  doc.labor.forEach(function (it) { L.push('- ' + it.n + ' — ' + it.q + ' ' + it.u + ' — ' + money(it.lo) + '–' + money(it.hi) + ' (unit ' + money(it.r[0]) + '–' + money(it.r[1]) + ')'); });
+  L.push('');
+  L.push('INDICATIVE TOTAL: ' + money(doc.totals[0]) + ' – ' + money(doc.totals[1]) + ' (synthetic, not a quote)');
+  L.push('');
+  L.push('TIMELINE');
+  doc.phases.forEach(function (p) { L.push('- ' + p[0] + ' — ' + p[1]); });
+  L.push('');
+  L.push('WARRANTY');
+  L.push(doc.warranty);
+  L.push('');
+  L.push('TERMS & CONDITIONS');
+  doc.terms.forEach(function (x) { L.push('- ' + x); });
+  L.push(doc.termsNote);
+  L.push('');
+  L.push(STAMP);
+  return L.join('\n');
+}
+
+var state = { biz: 'roofing', size: 'medium', region: 'cedar-valley' };
+var currentDoc = null;
+
+function renderControls() {
+  document.getElementById('bizSeg').innerHTML = BIZ_ORDER.map(function (id) {
+    return '<button type="button" data-biz="' + id + '" aria-pressed="' + (state.biz === id) + '">' + VERTICALS[id].label + '</button>';
+  }).join('');
+  document.getElementById('sizeSeg').innerHTML = SIZES.map(function (s) {
+    return '<button type="button" data-size="' + s.id + '" aria-pressed="' + (state.size === s.id) + '">' + s.label + '</button>';
+  }).join('');
+  document.getElementById('regionSel').innerHTML = REGIONS.map(function (r) {
+    return '<option value="' + r.id + '"' + (state.region === r.id ? ' selected' : '') + '>' + r.name + ' — ' + r.note + '</option>';
+  }).join('');
+}
+
+function generate() {
+  var t0 = performance.now();
+  var doc = generateProposal(state.biz, state.size, state.region, Math.floor(Math.random() * 1e9));
+  var ms = Math.max(1, Math.round(performance.now() - t0));
+  currentDoc = doc;
+  document.getElementById('output').innerHTML = renderProposal(doc, ms);
+}
+
+function renderExamples() {
+  document.getElementById('examplesList').innerHTML = EXAMPLES.map(function (ex) {
+    var t0 = performance.now();
+    var doc = generateProposal(ex.biz, ex.size, ex.region, ex.seed);
+    var ms = Math.max(1, Math.round(performance.now() - t0));
+    return '<details' + (ex.seed === 1101 ? ' open' : '') + '><summary>' + ex.title + '</summary><div class="ex-body">' + renderProposal(doc, ms) + '</div></details>';
+  }).join('');
+}
+
+function wireup() {
+  renderControls();
+  generate();
+  renderExamples();
+
+  document.getElementById('bizSeg').addEventListener('click', function (e) {
+    var b = e.target.closest('button[data-biz]');
+    if (!b) return;
+    state.biz = b.getAttribute('data-biz');
+    renderControls();
+    generate();
+  });
+  document.getElementById('sizeSeg').addEventListener('click', function (e) {
+    var b = e.target.closest('button[data-size]');
+    if (!b) return;
+    state.size = b.getAttribute('data-size');
+    renderControls();
+    generate();
+  });
+  document.getElementById('regionSel').addEventListener('change', function () {
+    state.region = document.getElementById('regionSel').value;
+    generate();
+  });
+  document.getElementById('genBtn').addEventListener('click', generate);
+  document.getElementById('rerollBtn').addEventListener('click', generate);
+  document.getElementById('printBtn').addEventListener('click', function () { window.print(); });
+  document.getElementById('copyBtn').addEventListener('click', function () {
+    var btn = document.getElementById('copyBtn');
+    var txt = currentDoc ? buildPlainText(currentDoc) : '';
+    function done() { btn.textContent = 'Copied ✓'; setTimeout(function () { btn.textContent = 'Copy outline'; }, 1400); }
+    function fallback() {
+      var ta = document.createElement('textarea');
+      ta.value = txt;
+      document.body.appendChild(ta);
+      ta.select();
+      try { document.execCommand('copy'); done(); } catch (err) {}
+      document.body.removeChild(ta);
+    }
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(txt).then(done, fallback);
+    } else { fallback(); }
+  });
+}
+
+if (typeof document !== 'undefined' && typeof window !== 'undefined') {
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', wireup);
+  } else {
+    wireup();
+  }
+}
+</script>
+</body>
+</html>
